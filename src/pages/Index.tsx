@@ -506,11 +506,16 @@ const Index = () => {
       {/* ═══════════ FOOTER ═══════════ */}
       <footer className="relative text-center py-8 border-t border-border">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-        <p className="font-mono text-xs text-muted-foreground">
-          <span className="text-primary">©</span> {new Date().getFullYear()} Bassini Tecnologia
-          <span className="text-muted-foreground/40 mx-2">|</span>
-          Todos os direitos reservados
-        </p>
+        <div className="flex flex-col items-center gap-2">
+          <p className="font-mono text-xs text-muted-foreground">
+            <span className="text-primary">©</span> {new Date().getFullYear()} Bassini Tecnologia
+            <span className="text-muted-foreground/40 mx-2">|</span>
+            Todos os direitos reservados
+          </p>
+          <Link to="/auth" className="text-[10px] font-mono text-muted-foreground/30 hover:text-primary transition-colors">
+            Acesso Restrito
+          </Link>
+        </div>
       </footer>
 
       {/* ═══════════ WHATSAPP FLUTUANTE ═══════════ */}
