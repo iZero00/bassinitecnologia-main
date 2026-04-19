@@ -1,0 +1,180 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 225 25% 6%;
+    --foreground: 200 15% 90%;
+
+    --card: 225 20% 9%;
+    --card-foreground: 200 15% 90%;
+
+    --popover: 225 20% 9%;
+    --popover-foreground: 200 15% 90%;
+
+    --primary: 195 100% 50%;
+    --primary-foreground: 225 25% 6%;
+
+    --secondary: 225 15% 14%;
+    --secondary-foreground: 200 15% 80%;
+
+    --muted: 225 15% 12%;
+    --muted-foreground: 215 10% 45%;
+
+    --accent: 160 80% 45%;
+    --accent-foreground: 225 25% 6%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 225 15% 14%;
+    --input: 225 15% 14%;
+    --ring: 195 100% 50%;
+
+    --radius: 0.5rem;
+
+    --gradient-primary: linear-gradient(135deg, hsl(207 90% 54%), hsl(195 100% 50%));
+    --gradient-hero: linear-gradient(180deg, hsl(225 30% 4%), hsl(225 25% 8%));
+    --gradient-glow: radial-gradient(ellipse at 50% 30%, hsl(195 100% 50% / 0.08), transparent 70%);
+    --gradient-card: linear-gradient(160deg, hsl(225 20% 11%), hsl(225 20% 8%));
+
+    --shadow-glow: 0 0 30px hsl(195 100% 50% / 0.12);
+    --shadow-card: 0 2px 16px hsl(0 0% 0% / 0.4);
+
+    --sidebar-background: 225 25% 6%;
+    --sidebar-foreground: 200 15% 90%;
+    --sidebar-primary: 195 100% 50%;
+    --sidebar-primary-foreground: 225 25% 6%;
+    --sidebar-accent: 225 15% 14%;
+    --sidebar-accent-foreground: 200 15% 90%;
+    --sidebar-border: 225 15% 14%;
+    --sidebar-ring: 195 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-weight: 700;
+  }
+
+  code, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Hero */
+.hero-section {
+  background: var(--gradient-hero);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-glow);
+  pointer-events: none;
+}
+
+.hero-section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(195 100% 50% / 0.3), transparent);
+}
+
+/* Scanline effect */
+.scanlines {
+  position: relative;
+}
+.scanlines::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    hsl(195 100% 50% / 0.015) 2px,
+    hsl(195 100% 50% / 0.015) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Cards */
+.card-tech {
+  background: var(--gradient-card);
+  box-shadow: var(--shadow-card);
+  border: 1px solid hsl(225 15% 16%);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.card-tech::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity 0.35s;
+}
+
+.card-tech:hover {
+  border-color: hsl(195 100% 50% / 0.25);
+  box-shadow: var(--shadow-glow), var(--shadow-card);
+  transform: translateY(-2px);
+}
+
+.card-tech:hover::before {
+  opacity: 1;
+}
+
+.text-gradient {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Terminal-like grid bg */
+.grid-dots {
+  background-image: radial-gradient(hsl(195 100% 50% / 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Blinking cursor */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
