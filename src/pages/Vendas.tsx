@@ -19,7 +19,7 @@ const waHero = waMsg("Olá! Quero ter um site profissional para o meu negócio. 
 const waLanding = waMsg("Olá! Tenho interesse no plano Landing Page (página única). Gostaria de saber o valor e os detalhes.");
 const waEssencial = waMsg("Olá! Tenho interesse no plano Essencial (até 3 páginas). Gostaria de saber o valor e os detalhes.");
 const waProfissional = waMsg("Olá! Quero o plano Profissional (até 5 páginas, SEO e painel admin). Qual o valor?");
-const waPremium = waMsg("Olá! Tenho interesse no plano Premium (até 7 páginas, animações e blog). Qual o investimento?");
+const waPremium = waMsg("Olá! Tenho interesse no plano Premium (até 7 páginas e animações). Qual o investimento?");
 const waFinalCta = waMsg("Olá! Estou decidido, quero criar meu site profissional com a Bassini. Vamos conversar!");
 
 const fadeUp = {
@@ -325,7 +325,7 @@ const Vendas = () => {
               name: "🥇 Premium",
               desc: "Para quem quer o melhor",
               paymentInfo: "Até 6x sem juros no cartão",
-              features: ["Tudo do Profissional", "Até 7 páginas", "Animações avançadas", "Blog integrado", "Suporte prioritário", "Entrega em 10 dias"],
+              features: ["Tudo do Profissional", "Até 7 páginas", "Animações avançadas", "Suporte prioritário", "Entrega em 10 dias"],
               highlight: false,
               waLink: waPremium,
               btnText: "Quero o Premium",
