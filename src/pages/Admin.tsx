@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Plus, LogOut, ExternalLink, Loader2, Globe } from "lucide-react";
 import logo from "@/assets/logo-bassini.png";
+import { canonicalForCurrentRoute, setCanonical, setMetaName, setMetaProperty, setTitle as setDocumentTitle } from "@/lib/seo";
 
 interface Site {
   id: string;
@@ -28,6 +29,15 @@ const Admin = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const title = "Admin | Bassini Tecnologia";
+    setDocumentTitle(title);
+    setMetaName("robots", "noindex,nofollow,noarchive");
+    setCanonical(canonicalForCurrentRoute());
+    setMetaProperty("og:title", title);
+    setMetaProperty("og:url", canonicalForCurrentRoute());
+  }, []);
 
   useEffect(() => {
     const checkAuth = async () => {

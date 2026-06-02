@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import logo from "@/assets/logo-bassini.png";
 import Navbar from "@/components/Navbar";
+import { canonicalForCurrentRoute, setCanonical, setMetaName, setMetaProperty, setTitle } from "@/lib/seo";
 
 const whatsappBase = "https://wa.me/5567993073133?text=";
 
@@ -54,9 +55,57 @@ const FaqItem = ({ q, a }: { q: string; a: string }) => {
 };
 
 const Vendas = () => {
+  useEffect(() => {
+    const title = "Planos de Sites Profissionais | Bassini Tecnologia";
+    const description =
+      "Escolha a melhor opção para ter um site profissional. Pagamento à vista ou até 6x sem juros no cartão. Solicite seu orçamento pelo WhatsApp.";
+
+    setTitle(title);
+    setMetaName("description", description);
+    setMetaName("robots", "index,follow,max-image-preview:large");
+    setCanonical(canonicalForCurrentRoute());
+
+    setMetaProperty("og:type", "website");
+    setMetaProperty("og:title", title);
+    setMetaProperty("og:description", description);
+    setMetaProperty("og:url", canonicalForCurrentRoute());
+    setMetaProperty("og:image", `${window.location.origin}/placeholder.svg`);
+
+    setMetaName("twitter:card", "summary_large_image");
+    setMetaName("twitter:title", title);
+    setMetaName("twitter:description", description);
+    setMetaName("twitter:image", `${window.location.origin}/placeholder.svg`);
+  }, []);
+
   return (
     <div id="top" className="min-h-screen bg-background scanlines">
       <Navbar />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: "Planos de Sites Profissionais | Bassini Tecnologia",
+            url: canonicalForCurrentRoute(),
+            isPartOf: {
+              "@type": "WebSite",
+              name: "Bassini Tecnologia",
+              url: window.location.origin,
+            },
+            about: {
+              "@type": "Service",
+              name: "Criação de Sites Profissionais",
+              areaServed: "BR",
+              provider: {
+                "@type": "LocalBusiness",
+                name: "Bassini Tecnologia",
+                url: window.location.origin,
+              },
+            },
+          }),
+        }}
+      />
 
       {/* ============ HERO ============ */}
       <header className="hero-section relative pt-28 pb-16 md:pt-36 md:pb-24 px-4 overflow-hidden">
@@ -248,7 +297,7 @@ const Vendas = () => {
             {
               name: "🚀 Landing Page",
               desc: "Página única focada em conversão",
-              paymentInfo: "Pagamento somente à vista",
+              paymentInfo: "Valor à vista",
               features: ["Design profissional", "1 página completa", "Responsivo", "Botão de WhatsApp", "Entrega em 3 dias"],
               highlight: false,
               waLink: waLanding,
@@ -295,8 +344,7 @@ const Vendas = () => {
               <h3 className="text-base font-bold text-foreground mb-1 mt-2">{plan.name}</h3>
               <p className="text-[10px] text-muted-foreground mb-3">{plan.desc}</p>
               <div className="mb-4">
-                <span className="text-xl font-bold text-gradient">Valor sob consulta</span>
-                <p className="text-[10px] text-muted-foreground mt-1">{plan.paymentInfo}</p>
+                <span className="text-xl md:text-2xl font-bold text-gradient">{plan.paymentInfo}</span>
               </div>
               <div className="space-y-2 mb-6 text-left">
                 {plan.features.map((f) => (
@@ -410,6 +458,11 @@ const Vendas = () => {
           <span className="text-muted-foreground/40 mx-2">|</span>
           Todos os direitos reservados
         </p>
+        <div className="mt-2">
+          <Link to="/privacidade" className="text-[10px] font-mono text-muted-foreground hover:text-primary transition-colors">
+            Política de Privacidade
+          </Link>
+        </div>
       </footer>
 
       {/* Floating WhatsApp */}

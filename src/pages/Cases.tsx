@@ -7,13 +7,7 @@ import {
   MessageCircle, ArrowRight, BarChart3, Zap
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
-
-import oMeuCofrinhoPreview from "@/assets/site-previews/omeucofrinho.png";
-import drThorPreview from "@/assets/site-previews/dr-thor-suplementos.png";
-import burgerVenezuelanoPreview from "@/assets/site-previews/burger-venezuelano-express.png";
-import nutrigenPreview from "@/assets/site-previews/nutrigen.png";
-import globalMsPreview from "@/assets/site-previews/globalms-glow-up.png";
-import cvFacilPreview from "@/assets/site-previews/cv-facil.png";
+import { canonicalForCurrentRoute, setCanonical, setMetaName, setMetaProperty, setTitle } from "@/lib/seo";
 
 interface Site {
   id: string;
@@ -22,15 +16,6 @@ interface Site {
   url: string;
   image_url: string | null;
 }
-
-const localPreviewByUrl: Record<string, string> = {
-  "https://www.omeucofrinho.com.br/": oMeuCofrinhoPreview,
-  "https://dr-thor-suplementos.vercel.app/": drThorPreview,
-  "https://burger-venezuelano-express.vercel.app/": burgerVenezuelanoPreview,
-  "https://nutrigen-fawn.vercel.app/": nutrigenPreview,
-  "https://globalms-glow-up.vercel.app/": globalMsPreview,
-  "https://cvfacil-ten.vercel.app/": cvFacilPreview,
-};
 
 const waUrl = "https://wa.me/5567993073133?text=" + encodeURIComponent("Olá! Vi os cases da Bassini Tecnologia e quero um site assim para o meu negócio!");
 
@@ -60,6 +45,28 @@ const Cases = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const title = "Cases e Portfólio | Bassini Tecnologia";
+    const description =
+      "Confira cases e sites já desenvolvidos pela Bassini Tecnologia. Veja resultados e escolha um estilo para o seu negócio.";
+
+    setTitle(title);
+    setMetaName("description", description);
+    setMetaName("robots", "index,follow,max-image-preview:large");
+    setCanonical(canonicalForCurrentRoute());
+
+    setMetaProperty("og:type", "website");
+    setMetaProperty("og:title", title);
+    setMetaProperty("og:description", description);
+    setMetaProperty("og:url", canonicalForCurrentRoute());
+    setMetaProperty("og:image", `${window.location.origin}/placeholder.svg`);
+
+    setMetaName("twitter:card", "summary_large_image");
+    setMetaName("twitter:title", title);
+    setMetaName("twitter:description", description);
+    setMetaName("twitter:image", `${window.location.origin}/placeholder.svg`);
+  }, []);
+
+  useEffect(() => {
     const fetchSites = async () => {
       const { data } = await supabase
         .from("portfolio_sites")
@@ -76,6 +83,22 @@ const Cases = () => {
   return (
     <div id="top" className="min-h-screen bg-background scanlines">
       <Navbar />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: "Cases e Portfólio | Bassini Tecnologia",
+            url: canonicalForCurrentRoute(),
+            isPartOf: {
+              "@type": "WebSite",
+              name: "Bassini Tecnologia",
+              url: window.location.origin,
+            },
+          }),
+        }}
+      />
 
       {/* Hero */}
       <header className="hero-section pt-28 pb-16 md:pt-36 md:pb-24 px-4 text-center relative">
@@ -142,7 +165,7 @@ const Cases = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {sites.map((site, index) => {
                 const formattedUrl = site.url.replace(/^https?:\/\//, "").replace(/\/$/, "");
-                const previewImage = site.image_url || localPreviewByUrl[site.url] || `https://image.thum.io/get/width/1280/crop/720/noanimate/${site.url}`;
+                const previewImage = site.image_url || `https://image.thum.io/get/width/1280/crop/720/noanimate/${site.url}`;
 
                 const waStyleUrl = "https://wa.me/5567993073133?text=" + encodeURIComponent(`Olá! Vi o site "${site.title}" nos cases da Bassini Tecnologia e gostei desse estilo! Quero algo parecido para o meu negócio.`);
 
@@ -289,6 +312,11 @@ const Cases = () => {
           <span className="text-muted-foreground/40 mx-2">|</span>
           Todos os direitos reservados
         </p>
+        <div className="mt-2">
+          <Link to="/privacidade" className="text-[10px] font-mono text-muted-foreground hover:text-primary transition-colors">
+            Política de Privacidade
+          </Link>
+        </div>
       </footer>
 
       {/* Floating WhatsApp */}

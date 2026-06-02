@@ -1,11 +1,17 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { canonicalForCurrentRoute, setCanonical, setMetaName, setMetaProperty, setTitle } from "@/lib/seo";
 
 const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
+    const title = "Página não encontrada | Bassini Tecnologia";
+    setTitle(title);
+    setMetaName("robots", "noindex,follow,noarchive");
+    setCanonical(canonicalForCurrentRoute());
+    setMetaProperty("og:title", title);
+    setMetaProperty("og:url", canonicalForCurrentRoute());
   }, [location.pathname]);
 
   return (

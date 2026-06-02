@@ -10,12 +10,7 @@ import {
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import logo from "@/assets/logo-bassini.png";
-import oMeuCofrinhoPreview from "@/assets/site-previews/omeucofrinho.png";
-import drThorPreview from "@/assets/site-previews/dr-thor-suplementos.png";
-import burgerVenezuelanoPreview from "@/assets/site-previews/burger-venezuelano-express.png";
-import nutrigenPreview from "@/assets/site-previews/nutrigen.png";
-import globalMsPreview from "@/assets/site-previews/globalms-glow-up.png";
-import cvFacilPreview from "@/assets/site-previews/cv-facil.png";
+import { canonicalForCurrentRoute, setCanonical, setMetaName, setMetaProperty, setTitle } from "@/lib/seo";
 
 interface Site {
   id: string;
@@ -24,15 +19,6 @@ interface Site {
   url: string;
   image_url: string | null;
 }
-
-const localPreviewByUrl: Record<string, string> = {
-  "https://www.omeucofrinho.com.br/": oMeuCofrinhoPreview,
-  "https://dr-thor-suplementos.vercel.app/": drThorPreview,
-  "https://burger-venezuelano-express.vercel.app/": burgerVenezuelanoPreview,
-  "https://nutrigen-fawn.vercel.app/": nutrigenPreview,
-  "https://globalms-glow-up.vercel.app/": globalMsPreview,
-  "https://cvfacil-ten.vercel.app/": cvFacilPreview,
-};
 
 const waUrl = "https://wa.me/5567993073133?text=" + encodeURIComponent("Olá! Vim pelo site da Bassini Tecnologia e gostaria de saber mais sobre criação de sites.");
 const waOrcamento = "https://wa.me/5567993073133?text=" + encodeURIComponent("Olá! Gostaria de solicitar um orçamento para criação de site profissional.");
@@ -63,7 +49,7 @@ const SectionTitle = ({ children, sub }: { children: React.ReactNode; sub?: stri
 
 const SiteCard = ({ site, index }: { site: Site; index: number }) => {
   const formattedUrl = site.url.replace(/^https?:\/\//, "").replace(/\/$/, "");
-  const previewImage = site.image_url || localPreviewByUrl[site.url] || `https://image.thum.io/get/width/1280/crop/720/noanimate/${site.url}`;
+  const previewImage = site.image_url || `https://image.thum.io/get/width/1280/crop/720/noanimate/${site.url}`;
   const waStyleUrl = "https://wa.me/5567993073133?text=" + encodeURIComponent(`Olá! Vi o site "${site.title}" nos cases da Bassini Tecnologia e gostei desse estilo! Quero algo parecido para o meu negócio.`);
 
   return (
@@ -133,6 +119,28 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const title = "Bassini Tecnologia | Criação de Sites Profissionais";
+    const description =
+      "Criação de sites profissionais, rápidos e otimizados para Google. Veja cases e solicite um orçamento pelo WhatsApp.";
+
+    setTitle(title);
+    setMetaName("description", description);
+    setMetaName("robots", "index,follow,max-image-preview:large");
+    setCanonical(canonicalForCurrentRoute());
+
+    setMetaProperty("og:type", "website");
+    setMetaProperty("og:title", title);
+    setMetaProperty("og:description", description);
+    setMetaProperty("og:url", canonicalForCurrentRoute());
+    setMetaProperty("og:image", `${window.location.origin}/placeholder.svg`);
+
+    setMetaName("twitter:card", "summary_large_image");
+    setMetaName("twitter:title", title);
+    setMetaName("twitter:description", description);
+    setMetaName("twitter:image", `${window.location.origin}/placeholder.svg`);
+  }, []);
+
+  useEffect(() => {
     const fetchSites = async () => {
       const { data } = await supabase
         .from("portfolio_sites")
@@ -149,6 +157,34 @@ const Index = () => {
   return (
     <div id="top" className="min-h-screen bg-background scanlines">
       <Navbar />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "LocalBusiness",
+                name: "Bassini Tecnologia",
+                url: window.location.origin,
+                email: "contato@bassini.dev",
+                telephone: "+5567993073133",
+                address: {
+                  "@type": "PostalAddress",
+                  addressLocality: "Araçatuba",
+                  addressRegion: "SP",
+                  addressCountry: "BR",
+                },
+              },
+              {
+                "@type": "WebSite",
+                name: "Bassini Tecnologia",
+                url: window.location.origin,
+              },
+            ],
+          }),
+        }}
+      />
 
       {/* ═══════════ 1. HERO ═══════════ */}
       <header className="hero-section pt-28 pb-16 md:pt-36 md:pb-24 px-4 text-center relative">
@@ -161,6 +197,10 @@ const Index = () => {
           <motion.img
             src={logo}
             alt="Bassini Tecnologia"
+            width={144}
+            height={144}
+            loading="eager"
+            decoding="async"
             className="h-24 md:h-36 mb-8 drop-shadow-[0_0_40px_hsl(195,100%,50%,0.2)]"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -538,6 +578,11 @@ const Index = () => {
           <span className="text-muted-foreground/40 mx-2">|</span>
           Todos os direitos reservados
         </p>
+        <div className="mt-2">
+          <Link to="/privacidade" className="text-[10px] font-mono text-muted-foreground hover:text-primary transition-colors">
+            Política de Privacidade
+          </Link>
+        </div>
       </footer>
 
       {/* ═══════════ WHATSAPP FLUTUANTE ═══════════ */}
