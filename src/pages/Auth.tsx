@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -15,17 +16,13 @@ const Auth = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Static mock login
-    setTimeout(() => {
-      setLoading(false);
-      if (email === "admin@bassini.com.br" && password === "admin123") {
-        localStorage.setItem("is_authenticated", "true");
-        navigate("/admin");
-      } else {
-        toast({ title: "Erro ao entrar", description: "Credenciais inválidas (Modo Estático)", variant: "destructive" });
-      }
-    }, 500);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (error) {
+      toast({ title: "Erro ao entrar", description: error.message, variant: "destructive" });
+    } else {
+      navigate("/admin");
+    }
   };
 
   return (
@@ -33,8 +30,7 @@ const Auth = () => {
       <div className="w-full max-w-sm">
         <img src={logo} alt="Bassini Tecnologia" className="h-12 mx-auto mb-8" />
         <form onSubmit={handleLogin} className="bg-card p-6 rounded-lg shadow-sm border border-border space-y-4">
-          <h1 className="text-xl font-semibold text-card-foreground text-center">Painel Admin (Demo)</h1>
-          <p className="text-xs text-center text-muted-foreground">admin@bassini.com.br / admin123</p>
+          <h1 className="text-xl font-semibold text-card-foreground text-center">Painel Admin</h1>
           <Input
             type="email"
             placeholder="Email"
@@ -59,4 +55,3 @@ const Auth = () => {
 };
 
 export default Auth;
-

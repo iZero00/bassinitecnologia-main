@@ -16,9 +16,9 @@ const waMsg = (text: string) => `${whatsappBase}${encodeURIComponent(text)}`;
 const whatsappUrl = waMsg("Olá! Vi a página da Bassini Tecnologia e quero saber mais sobre criação de sites.");
 const waHero = waMsg("Olá! Quero ter um site profissional para o meu negócio. Podem me ajudar?");
 const waLanding = waMsg("Olá! Tenho interesse no plano Landing Page (página única). Gostaria de saber o valor e os detalhes.");
-  const waEssencial = waMsg("Olá! Tenho interesse no plano Essencial (até 3 páginas). Gostaria de saber o valor e os detalhes.");
-  const waProfissional = waMsg("Olá! Quero o plano Profissional (até 5 páginas, SEO e painel admin). Qual o valor?");
-  const waPremium = waMsg("Olá! Tenho interesse no plano Premium (até 7 páginas, animações e blog). Qual o investimento?");
+const waEssencial = waMsg("Olá! Tenho interesse no plano Essencial (até 3 páginas). Gostaria de saber o valor e os detalhes.");
+const waProfissional = waMsg("Olá! Quero o plano Profissional (até 5 páginas, SEO e painel admin). Qual o valor?");
+const waPremium = waMsg("Olá! Tenho interesse no plano Premium (até 7 páginas, animações e blog). Qual o investimento?");
 const waFinalCta = waMsg("Olá! Estou decidido, quero criar meu site profissional com a Bassini. Vamos conversar!");
 
 const fadeUp = {
@@ -248,8 +248,7 @@ const Vendas = () => {
             {
               name: "🚀 Landing Page",
               desc: "Página única focada em conversão",
-              price: "R$ 497",
-              installment: null,
+              paymentInfo: "Pagamento somente à vista",
               features: ["Design profissional", "1 página completa", "Responsivo", "Botão de WhatsApp", "Entrega em 3 dias"],
               highlight: false,
               waLink: waLanding,
@@ -258,8 +257,7 @@ const Vendas = () => {
             {
               name: "🥉 Essencial",
               desc: "Ideal para empresas que querem presença profissional",
-              price: "R$ 997",
-              installment: "ou 12x de R$ 83",
+              paymentInfo: "Até 6x sem juros no cartão",
               features: ["Design profissional", "Até 3 páginas", "Responsivo", "Formulário de contato", "Integração com Google Maps", "Entrega em 5 dias"],
               highlight: false,
               waLink: waEssencial,
@@ -268,8 +266,7 @@ const Vendas = () => {
             {
               name: "🥈 Profissional",
               desc: "O mais escolhido pelos clientes",
-              price: "R$ 1.247",
-              installment: "ou 12x de R$ 104",
+              paymentInfo: "Até 6x sem juros no cartão",
               features: ["Tudo do Essencial", "Até 5 páginas", "SEO otimizado", "WhatsApp integrado", "Painel administrativo", "Entrega em 7 dias"],
               highlight: true,
               waLink: waProfissional,
@@ -278,8 +275,7 @@ const Vendas = () => {
             {
               name: "🥇 Premium",
               desc: "Para quem quer o melhor",
-              price: "R$ 1.747",
-              installment: "ou 12x de R$ 146",
+              paymentInfo: "Até 6x sem juros no cartão",
               features: ["Tudo do Profissional", "Até 7 páginas", "Animações avançadas", "Blog integrado", "Suporte prioritário", "Entrega em 10 dias"],
               highlight: false,
               waLink: waPremium,
@@ -299,12 +295,8 @@ const Vendas = () => {
               <h3 className="text-base font-bold text-foreground mb-1 mt-2">{plan.name}</h3>
               <p className="text-[10px] text-muted-foreground mb-3">{plan.desc}</p>
               <div className="mb-4">
-                <span className="text-2xl font-bold text-gradient">{plan.price}</span>
-                {plan.installment ? (
-                  <p className="text-[10px] text-muted-foreground mt-1">{plan.installment}</p>
-                ) : (
-                  <p className="text-[10px] text-accent mt-1 font-semibold">à vista</p>
-                )}
+                <span className="text-xl font-bold text-gradient">Valor sob consulta</span>
+                <p className="text-[10px] text-muted-foreground mt-1">{plan.paymentInfo}</p>
               </div>
               <div className="space-y-2 mb-6 text-left">
                 {plan.features.map((f) => (

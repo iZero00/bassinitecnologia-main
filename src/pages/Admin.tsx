@@ -1,19 +1,20 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Plus, LogOut, ExternalLink, Loader2, Globe } from "lucide-react";
 import logo from "@/assets/logo-bassini.png";
-import { z } from "zod";
-import { portfolioSites, type Site } from "@/data/portfolio";
 
-const siteSchema = z.object({
-  title: z.string().min(3, "Título deve ter pelo menos 3 caracteres").max(100, "Título muito longo"),
-  description: z.string().max(500, "Descrição muito longa").optional(),
-  url: z.string().url("URL inválida").startsWith("http", "URL deve começar com http ou https"),
-});
+interface Site {
+  id: string;
+  title: string;
+  description: string | null;
+  url: string;
+  image_url: string | null;
+}
 
 const Admin = () => {
   const [sites, setSites] = useState<Site[]>([]);
@@ -23,22 +24,31 @@ const Admin = () => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     const checkAuth = async () => {
-      const isAuth = localStorage.getItem("is_authenticated") === "true";
-      if (!isAuth) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
         navigate("/auth");
         return;
       }
-      // Load initial sites from static file
-      setSites(portfolioSites);
+      setUserId(user.id);
+      fetchSites();
     };
     checkAuth();
   }, [navigate]);
+
+  const fetchSites = async () => {
+    const { data } = await supabase
+      .from("portfolio_sites")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setSites(data || []);
+  };
 
   const fetchMetadata = useCallback(async (inputUrl: string) => {
     if (!inputUrl || (!inputUrl.startsWith("http://") && !inputUrl.startsWith("https://"))) return;
@@ -46,12 +56,22 @@ const Admin = () => {
     setFetching(true);
     setPreviewUrl(inputUrl);
 
-    // Mock metadata fetching
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke("scrape-metadata", {
+        body: { url: inputUrl },
+      });
+
+      if (!error && data?.success && data.data) {
+        if (data.data.title && !title) setTitle(data.data.title);
+        if (data.data.description && !description) setDescription(data.data.description);
+        if (data.data.image) setImageUrl(data.data.image);
+      }
+    } catch (err) {
+      console.error("Error fetching metadata:", err);
+    } finally {
       setFetching(false);
-      toast({ title: "Modo Offline", description: "Busca de metadados simulada para demonstração." });
-    }, 1000);
-  }, [toast]);
+    }
+  }, [title, description]);
 
   // Debounce URL input
   useEffect(() => {
@@ -68,49 +88,63 @@ const Admin = () => {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!userId) return;
+    setLoading(true);
 
-    // Validate data
-    const validation = siteSchema.safeParse({ title, description, url });
-    if (!validation.success) {
-      const errors = validation.error.errors.map(err => err.message).join(", ");
-      toast({ title: "Erro de validação", description: errors, variant: "destructive" });
+    const { data: inserted, error } = await supabase.from("portfolio_sites").insert({
+      title,
+      description: description || null,
+      url,
+      image_url: imageUrl,
+      user_id: userId,
+    }).select().single();
+
+    if (error) {
+      setLoading(false);
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
       return;
     }
 
-    setLoading(true);
+    toast({ title: "Site adicionado!" });
 
-    // Mock add to local state
-    setTimeout(() => {
-      const newSite: Site = {
-        id: crypto.randomUUID(),
-        title: title.trim(),
-        description: description?.trim() || null,
-        url: url.trim(),
-        image_url: imageUrl || `https://image.thum.io/get/width/1280/crop/720/noanimate/${url}`,
-      };
+    // Auto-capture screenshot if no image was detected
+    if (!imageUrl && inserted) {
+      toast({ title: "📸 Capturando capa automática...", description: "Aguarde alguns segundos." });
+      try {
+        const { data: capData } = await supabase.functions.invoke("capture-screenshot", {
+          body: { url, site_id: inserted.id },
+        });
+        if (capData?.success) {
+          toast({ title: "✅ Capa gerada!", description: "A imagem do site foi salva automaticamente." });
+        }
+      } catch (err) {
+        console.error("Screenshot capture error:", err);
+      }
+    }
 
-      setSites(prev => [newSite, ...prev]);
-      toast({ title: "Site adicionado (Demo)", description: "Isso ficará visível apenas nesta sessão." });
-
-      setTitle("");
-      setDescription("");
-      setUrl("");
-      setImageUrl(null);
-      setPreviewUrl(null);
-      setLoading(false);
-    }, 500);
+    setTitle("");
+    setDescription("");
+    setUrl("");
+    setImageUrl(null);
+    setPreviewUrl(null);
+    setLoading(false);
+    fetchSites();
   };
 
   const handleDelete = async (id: string) => {
-    setSites(prev => prev.filter(s => s.id !== id));
-    toast({ title: "Site removido (Demo)" });
+    const { error } = await supabase.from("portfolio_sites").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Site removido" });
+      fetchSites();
+    }
   };
 
   const handleLogout = async () => {
-    localStorage.removeItem("is_authenticated");
+    await supabase.auth.signOut();
     navigate("/");
   };
-
 
   return (
     <div className="min-h-screen bg-background">

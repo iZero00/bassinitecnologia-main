@@ -1,12 +1,36 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { portfolioSites, type Site } from "@/data/portfolio";
+import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import {
   ArrowUpRight, Code2, Star, TrendingUp, Users, Globe,
   MessageCircle, ArrowRight, BarChart3, Zap
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+
+import oMeuCofrinhoPreview from "@/assets/site-previews/omeucofrinho.png";
+import drThorPreview from "@/assets/site-previews/dr-thor-suplementos.png";
+import burgerVenezuelanoPreview from "@/assets/site-previews/burger-venezuelano-express.png";
+import nutrigenPreview from "@/assets/site-previews/nutrigen.png";
+import globalMsPreview from "@/assets/site-previews/globalms-glow-up.png";
+import cvFacilPreview from "@/assets/site-previews/cv-facil.png";
+
+interface Site {
+  id: string;
+  title: string;
+  description: string | null;
+  url: string;
+  image_url: string | null;
+}
+
+const localPreviewByUrl: Record<string, string> = {
+  "https://www.omeucofrinho.com.br/": oMeuCofrinhoPreview,
+  "https://dr-thor-suplementos.vercel.app/": drThorPreview,
+  "https://burger-venezuelano-express.vercel.app/": burgerVenezuelanoPreview,
+  "https://nutrigen-fawn.vercel.app/": nutrigenPreview,
+  "https://globalms-glow-up.vercel.app/": globalMsPreview,
+  "https://cvfacil-ten.vercel.app/": cvFacilPreview,
+};
 
 const waUrl = "https://wa.me/5567993073133?text=" + encodeURIComponent("Olá! Vi os cases da Bassini Tecnologia e quero um site assim para o meu negócio!");
 
@@ -37,8 +61,12 @@ const Cases = () => {
 
   useEffect(() => {
     const fetchSites = async () => {
-      // Mock data from static file
-      const shuffled = [...portfolioSites].sort(() => Math.random() - 0.5);
+      const { data } = await supabase
+        .from("portfolio_sites")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true });
+      const shuffled = (data || []).sort(() => Math.random() - 0.5);
       setSites(shuffled);
       setLoading(false);
     };
@@ -114,7 +142,7 @@ const Cases = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {sites.map((site, index) => {
                 const formattedUrl = site.url.replace(/^https?:\/\//, "").replace(/\/$/, "");
-                const previewImage = site.image_url || `https://image.thum.io/get/width/1280/crop/720/noanimate/${site.url}`;
+                const previewImage = site.image_url || localPreviewByUrl[site.url] || `https://image.thum.io/get/width/1280/crop/720/noanimate/${site.url}`;
 
                 const waStyleUrl = "https://wa.me/5567993073133?text=" + encodeURIComponent(`Olá! Vi o site "${site.title}" nos cases da Bassini Tecnologia e gostei desse estilo! Quero algo parecido para o meu negócio.`);
 
@@ -256,16 +284,11 @@ const Cases = () => {
       {/* Footer */}
       <footer className="relative text-center py-8 border-t border-border">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-        <div className="flex flex-col items-center gap-2">
-          <p className="font-mono text-xs text-muted-foreground">
-            <span className="text-primary">©</span> {new Date().getFullYear()} Bassini Tecnologia
-            <span className="text-muted-foreground/40 mx-2">|</span>
-            Todos os direitos reservados
-          </p>
-          <Link to="/auth" className="text-[10px] font-mono text-muted-foreground/30 hover:text-primary transition-colors">
-            Acesso Restrito
-          </Link>
-        </div>
+        <p className="font-mono text-xs text-muted-foreground">
+          <span className="text-primary">©</span> {new Date().getFullYear()} Bassini Tecnologia
+          <span className="text-muted-foreground/40 mx-2">|</span>
+          Todos os direitos reservados
+        </p>
       </footer>
 
       {/* Floating WhatsApp */}
