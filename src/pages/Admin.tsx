@@ -1,3 +1,4 @@
+import ProjectThumbnail from "@/components/admin/ProjectThumbnail";
 import CommercialContent from "@/components/CommercialContent";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
@@ -21,6 +22,9 @@ export default function Admin() {
     const [checked, setChecked] = useState(false);
     const [rows, setRows] = useState<Entry[]>([]);
     const [kind, setKind] = useState<Resource>("projects");
+    const [editorOpen, setEditorOpen] = useState(false);
+    const [itemSearch, setItemSearch] = useState("");
+    const [taxonomySearch, setTaxonomySearch] = useState({ categories: "", areas: "" });
     const [editing, setEditing] = useState<Entry | null>(null);
     const [body, setBody] = useState<Payload>({ title: "" });
     const [selected, setSelected] = useState<string[]>([]);
@@ -67,8 +71,8 @@ export default function Admin() {
     finally {
         setBusy(false);
     } };
-    const reset = () => { setEditing(null); setBody({ title: "" }); setHistory([]); setShowHistory(false); };
-    const edit = (entry: Entry) => { setEditing(entry); setBody(structuredClone(entry.draft)); setHistory([]); setShowHistory(false); };
+    const reset = () => { setEditorOpen(false); setTaxonomySearch({categories:"",areas:""}); setEditing(null); setBody({ title: "" }); setHistory([]); setShowHistory(false); };
+    const edit = (entry: Entry) => { setEditorOpen(true); setTaxonomySearch({categories:"",areas:""}); setEditing(entry); setBody(structuredClone(entry.draft)); setHistory([]); setShowHistory(false); };
     const set = (key: string, value: unknown) => setBody(prev => ({ ...prev, [key]: value }));
     const save = () => run(async () => { if (!body.title.trim())
         throw new Error("Informe um título."); for (const field of ["url", "image_url", "payment_url"]) {
@@ -101,7 +105,8 @@ export default function Admin() {
         <Button onClick={() => supabase.auth.signOut()}>Sair</Button>
         </main>;
     const canPublish = role === "admin" || role === "publisher";
-    const visible = rows.filter(r => r.resource === kind);
+    const normalize = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
+    const visible = rows.filter(r => r.resource === kind && normalize(r.draft.title).includes(normalize(itemSearch)));
     const settings = rows.find(r => r.resource === "settings")?.draft;
     return <div className="min-h-screen bg-background">
     <header className="border-b p-4 flex flex-wrap justify-between gap-3">
@@ -111,14 +116,15 @@ export default function Admin() {
     <Button variant="outline" onClick={() => supabase.auth.signOut()}>Sair</Button>
     </header>
     <main className="max-w-6xl mx-auto p-4 space-y-6">
-    <nav className="flex flex-wrap gap-2" aria-label="Módulos">{Object.entries(modules).filter(([key]) => key !== "settings" || role === "admin").map(([key, label]) => <Button key={key} variant={kind === key ? "default" : "outline"} disabled={busy} onClick={() => { setKind(key as Resource); setSelected([]); reset(); }}>{label}</Button>)}</nav>{message && <p role="status" className="border border-primary rounded p-3 whitespace-pre-wrap">{message}</p>}<div className="grid lg:grid-cols-2 gap-6">
-    <section className="card-tech p-5 rounded-lg space-y-4">
-    <h2 className="text-xl font-bold">{editing ? "Editar rascunho" : "Novo item"} · {modules[kind]}</h2>
+    <nav className="flex flex-wrap gap-2" aria-label="Módulos">{Object.entries(modules).filter(([key]) => key !== "settings" || role === "admin").map(([key, label]) => <Button key={key} variant={kind === key ? "default" : "outline"} disabled={busy} onClick={() => { setKind(key as Resource); setSelected([]); setItemSearch(""); reset(); }}>{label}</Button>)}</nav>{message && <p role="status" className="border border-primary rounded p-3 whitespace-pre-wrap">{message}</p>}<div className={`grid gap-6 ${editorOpen ? "lg:grid-cols-2" : ""}`}>
+    {editorOpen && <section className="card-tech p-5 rounded-lg space-y-4" aria-label="Editor de conteúdo">
+    <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-bold">{editing ? "Editar rascunho" : "Novo item"} · {modules[kind]}</h2><Button variant="outline" disabled={busy} onClick={reset}>Fechar edição</Button></div>
     <p className="text-xs text-muted-foreground">Salvar mantém o rascunho privado. A publicação é uma ação separada. Imagens enviadas são arquivos públicos: não envie conteúdo confidencial.</p>
     <form className="space-y-4" onSubmit={e => { e.preventDefault(); void save(); }}>
     <fieldset disabled={busy} className="space-y-4">
     <label className="block">Título<Input required maxLength={200} value={body.title} onChange={e => set("title", e.target.value)}/>
     </label>
+    {kind === "projects" && <ProjectThumbnail title={body.title || "Novo projeto"} imageUrl={body.image_url} siteUrl={body.url} />}
     <label className="block">Descrição / resposta / texto<Textarea rows={5} value={String(body.description || "")} onChange={e => set("description", e.target.value)}/>
     </label>{["projects", "media"].includes(kind) && <>
         <label className="block">URL<Input type="url" required={kind === "projects"} value={String(body.url || "")} onChange={e => set("url", e.target.value)}/>
@@ -129,8 +135,8 @@ export default function Admin() {
         </label>{safeUrl(body.image_url) && <img className="max-h-40 rounded" src={safeUrl(body.image_url)} alt="Imagem do rascunho"/>}</>}{kind === "projects" && <>
         <Button type="button" variant="outline" onClick={() => void capture()}>Capturar imagem automaticamente (opcional)</Button>
         <p className="text-xs text-muted-foreground">A captura envia a URL ao serviço externo thum.io. Se indisponível, use upload.</p>{(["categories", "areas"] as const).map(resource => <fieldset key={resource} className="border rounded p-3">
-            <legend>{modules[resource]} (múltiplas)</legend>{rows.filter(r => r.resource === resource && !r.archived).map(r => <label key={r.id} className="flex gap-2 p-1">
-                <input type="checkbox" checked={(body[resource] || []).includes(r.id)} onChange={e => set(resource, e.target.checked ? [...(body[resource] || []), r.id] : (body[resource] || []).filter(id => id !== r.id))}/>{r.draft.title}{!r.published && " (rascunho)"}</label>)}</fieldset>)}<Button type="button" variant="outline" onClick={() => setPreview(body)}>Prévia do projeto</Button>
+            <legend>{modules[resource]} (múltiplas)</legend><Input aria-label={`Buscar ${modules[resource].toLowerCase()}`} placeholder="Buscar opções..." value={taxonomySearch[resource]} onChange={e=>setTaxonomySearch(prev=>({...prev,[resource]:e.target.value}))}/><div className="max-h-60 overflow-y-auto mt-3">{rows.filter(r => r.resource === resource && !r.archived && normalize(r.draft.title).includes(normalize(taxonomySearch[resource]))).map(r => <label key={r.id} className="flex gap-2 p-1">
+                <input type="checkbox" checked={(body[resource] || []).includes(r.id)} onChange={e => set(resource, e.target.checked ? [...(body[resource] || []), r.id] : (body[resource] || []).filter(id => id !== r.id))}/>{r.draft.title}{!r.published && " (rascunho)"}</label>)}</div></fieldset>)}<Button type="button" variant="outline" onClick={() => setPreview(body)}>Prévia do projeto</Button>
         </>}{kind === "plans" && <>
         <label className="block">Preço (R$)<Input type="number" min="0" step="0.01" value={Number(body.price || 0)} onChange={e => set("price", Number(e.target.value))}/>
         </label>
@@ -142,19 +148,20 @@ export default function Admin() {
         </label>
         </>}{kind === "settings" && [["whatsapp", "WhatsApp com país e DDD"], ["cnpj", "CNPJ"], ["payment_url", "Link InfinitePay"], ["pix", "Chave Pix (será pública)"], ["email", "E-mail comercial"], ["instagram", "URL do Instagram"]].map(([key, label]) => <label className="block" key={key}>{label}<Input value={String(body[key] || "")} onChange={e => set(key, e.target.value)}/>
         </label>)}<div className="flex flex-wrap gap-2">{!["projects", "categories", "areas"].includes(kind) && <Button type="button" variant="outline" onClick={() => setCommercialPreview(true)}>Prévia do conteúdo</Button>}<Button type="submit">{busy ? "Aguarde..." : "Salvar rascunho"}</Button>
-    <Button type="button" variant="outline" onClick={reset}>Novo / limpar</Button>
+    <Button type="button" variant="outline" onClick={reset}>Cancelar / fechar</Button>
     </div>
     </fieldset>
     </form>{editing && canPublish && <div className="flex flex-wrap gap-2">
         <Button disabled={busy} onClick={() => void transition("publish", [editing.id])}>Publicar versão salva</Button>
         <Button disabled={busy} variant="outline" onClick={() => void transition("unpublish", [editing.id])}>Retirar do ar</Button>
-        </div>}<p className="text-xs text-muted-foreground">Confira e salve suas alterações antes de publicar. Em conteúdo e FAQ, a edição acima permite conferir o texto completo.</p>
-    </section>
+        </div>}{editing && <div className="flex flex-wrap gap-2">{canPublish && <Button variant="outline" disabled={busy} onClick={()=>void transition(editing.archived?"restore":"archive",[editing.id])}>{editing.archived?"Restaurar":"Arquivar"}</Button>}{role==="admin" && <Button variant="destructive" disabled={busy} onClick={()=>void transition("delete",[editing.id])}>Excluir</Button>}</div>}<p className="text-xs text-muted-foreground">Confira e salve suas alterações antes de publicar. Em conteúdo e FAQ, a edição acima permite conferir o texto completo.</p>
+    </section>}
     <section className="space-y-3">
     <div className="flex flex-wrap gap-2">
-    <h2 className="font-bold flex-1">Itens ({visible.length})</h2>
+    <h2 className="font-bold flex-1">{modules[kind]} ({visible.length})</h2>
+    {(kind !== "settings" || !rows.some(r=>r.resource === "settings")) && <Button disabled={busy} onClick={()=>{reset();setEditorOpen(true);}}>Novo item</Button>}
     <Button variant="outline" disabled={busy} onClick={() => void run(reload)}>Recarregar</Button>
-    </div>{canPublish && <div className="flex flex-wrap gap-2">
+    </div><Input aria-label="Buscar itens" placeholder="Buscar por nome..." value={itemSearch} onChange={e=>setItemSearch(e.target.value)}/>{canPublish && <div className="flex flex-wrap gap-2">
         <Button disabled={busy || !selected.length} onClick={() => void transition("publish", selected)}>Publicar selecionados ({selected.length})</Button>
         <Button variant="outline" disabled={busy || !selected.length} onClick={() => void transition("archive", selected)}>Arquivar selecionados</Button>
         </div>}{visible.map(entry => <article key={entry.id} className="border rounded-lg p-4 space-y-2">
@@ -162,11 +169,12 @@ export default function Admin() {
         <input aria-label={`Selecionar ${entry.draft.title}`} type="checkbox" checked={selected.includes(entry.id)} onChange={e => setSelected(e.target.checked ? [...selected, entry.id] : selected.filter(id => id !== entry.id))}/>
         <h3 className="font-semibold">{entry.draft.title}</h3>
         </div>
+        {kind === "projects" && <ProjectThumbnail title={entry.draft.title} imageUrl={entry.draft.image_url} siteUrl={entry.draft.url} />}
         <p className="text-xs text-muted-foreground">{entry.archived ? "Arquivado" : entry.published ? JSON.stringify(entry.draft) === JSON.stringify(entry.published) ? "Publicado" : "Publicado · alterações em rascunho" : "Rascunho"}</p>
         <div className="flex flex-wrap gap-2">
         <Button variant="outline" size="sm" disabled={busy} onClick={() => edit(entry)}>Editar / conferir</Button>
-        <Button variant="outline" size="sm" disabled={busy} onClick={() => void loadHistory(entry.id)}>Histórico</Button>{canPublish && <Button size="sm" variant="outline" disabled={busy} onClick={() => void transition(entry.archived ? "restore" : "archive", [entry.id])}>{entry.archived ? "Restaurar" : "Arquivar"}</Button>}{role === "admin" && <Button size="sm" variant="destructive" disabled={busy} onClick={() => void transition("delete", [entry.id])}>Excluir</Button>}</div>
-        </article>)}{showHistory && <section className="border rounded p-4">
+        <Button variant="outline" size="sm" disabled={busy} onClick={() => void loadHistory(entry.id)}>Histórico</Button></div>
+        </article>)}{!visible.length && <p className="p-4 text-muted-foreground">Nenhum item encontrado.</p>}{showHistory && <section className="border rounded p-4">
         <h3 className="font-semibold">Histórico (últimas 30 ações)</h3>{!history.length && <p>Nenhum histórico disponível.</p>}{history.map(h => <details key={h.id}>
             <summary className="cursor-pointer py-2">{new Date(h.created_at).toLocaleString("pt-BR")} · {h.action}</summary>
             <pre className="text-xs whitespace-pre-wrap break-all">{JSON.stringify(h.snapshot, null, 2)}</pre>
