@@ -15,7 +15,9 @@ export default function Catalog() {
     const settings = rows.find(r => r.resource === "settings")?.payload;
     const projects = rows.filter(r => r.resource === "projects");
     const categories = rows.filter(r => r.resource === "categories");
-    const areas = rows.filter(r => r.resource === "areas");
+    // cms_public contains only published, non-archived projects.
+    const linkedAreaIds = new Set(projects.flatMap(project => project.payload.areas || []));
+    const areas = rows.filter(r => r.resource === "areas" && linkedAreaIds.has(r.id));
     const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     const filtered = projects.filter(({ payload: p }) => (!query || normalize(`${p.title} ${p.description || ""} ${categories.filter(c => p.categories?.includes(c.id)).map(c => c.payload.title).join(" ")}`).includes(normalize(query))) && (!category || p.categories?.includes(category)) && (!area || p.areas?.includes(area)));
     return <div className="space-y-6">

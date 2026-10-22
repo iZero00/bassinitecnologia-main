@@ -30,3 +30,10 @@ dist-ssr
 .cache
 test-results
 playwright-report
+
+# Local setup, backups, and delivery archives (not application code)
+/instalacao/
+/backups/
+/arquivos-locais/
+*.zip
+*.tsbuildinfo
