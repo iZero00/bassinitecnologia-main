@@ -1,0 +1,2 @@
+import {cors,response,staff} from "../_shared/security.ts";
+Deno.serve(async(req)=>{if(req.method==="OPTIONS")return new Response(null,{headers:cors});if(req.method!=="POST")return response({success:false,error:"Método não permitido"},405);try{await staff(req);return response({success:false,error:"Importação automática de metadados desativada. Cadastre os textos e use upload ou captura opcional."},410);}catch{return response({success:false,error:"Acesso negado"},403);}});

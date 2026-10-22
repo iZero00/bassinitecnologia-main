@@ -1,0 +1,6 @@
+UPDATE portfolio_sites SET description = 'Plataforma de controle financeiro pessoal com planos gratuitos e premium para organizar suas finanças de forma simples.' WHERE id = '32bda2e4-66e3-40d4-bb7c-b19573ca2e6c';
+UPDATE portfolio_sites SET description = 'Loja de suplementos com entrega exclusiva em Três Lagoas - MS e atendimento direto pelo WhatsApp.' WHERE id = '18641aa7-d3f4-4b00-a032-11ac7545e2e1';
+UPDATE portfolio_sites SET description = 'Cardápio digital de hamburgueria venezuelana com pedidos online e retirada na loja.' WHERE id = '4940efc9-d4f6-47c7-927d-e3284121843e';
+UPDATE portfolio_sites SET description = 'Gerador de planos alimentares personalizados com cálculo de calorias e macros em minutos.' WHERE id = '7f64a535-a6cb-470b-9eda-1e3dc03a6e8f';
+UPDATE portfolio_sites SET description = 'Site institucional da Global Informática com soluções em redes, telefonia, monitoramento e automação desde 2007.' WHERE id = '4fde6e9f-89fc-4e21-a7a3-a7ca52377bd8';
+UPDATE portfolio_sites SET description = 'Ferramenta gratuita para criar currículos profissionais em PDF com preview em tempo real.' WHERE id = '2271ee3b-49d3-4a8c-b126-1b8ea7d30033';
